@@ -246,7 +246,7 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
       double maxForce =
           path.drivetrain.wheelMaxTorque / path.drivetrain.wheelRadius;
 
-      // |F|₂² ≤ Fₘₐₓ²
+      // check |F|₂² ≤ Fₘₐₓ²
       problem.SubjectTo(moduleF.SquaredNorm() <= maxForce * maxForce);
     }
 
