@@ -204,6 +204,9 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
   }
 
   for (size_t index = 0; index < sampTot; ++index) {
+    Rotation2v θ_k{cosθ.at(index), sinθ.at(index)};
+    Translation2v v_k{vx.at(index), vy.at(index)};
+
     // Apply module power constraints
     auto vWrtRobot = v_k.RotateBy(-θ_k);
     for (size_t moduleIndex = 0; moduleIndex < path.drivetrain.modules.size();
@@ -228,9 +231,6 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
       // |F| / (1 - |V| / Vmax) < Fmax
       problem.SubjectTo(moduleF.Norm() / (1 - vWheelWrtRobot.Norm() / maxWheelVelocity) <= maxForce);
     }
-
-    Rotation2v θ_k{cosθ.at(index), sinθ.at(index)};
-    Translation2v v_k{vx.at(index), vy.at(index)};
 
     // Solve for net force
     auto Fx_net = std::accumulate(Fx.at(index).begin(), Fx.at(index).end(),
