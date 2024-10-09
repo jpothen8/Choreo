@@ -207,6 +207,24 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
     Rotation2v θ_k{cosθ.at(index), sinθ.at(index)};
     Translation2v v_k{vx.at(index), vy.at(index)};
 
+    // Solve for net force
+    auto Fx_net = std::accumulate(Fx.at(index).begin(), Fx.at(index).end(),
+                                  sleipnir::Variable{0.0});
+    auto Fy_net = std::accumulate(Fy.at(index).begin(), Fy.at(index).end(),
+                                  sleipnir::Variable{0.0});
+
+    // Solve for net torque
+    sleipnir::Variable τ_net = 0.0;
+    for (size_t moduleIndex = 0; moduleIndex < path.drivetrain.modules.size();
+         ++moduleIndex) {
+      const auto& translation = path.drivetrain.modules.at(moduleIndex);
+      auto r = translation.RotateBy(θ_k);
+      Translation2v F{Fx.at(index).at(moduleIndex),
+                      Fy.at(index).at(moduleIndex)};
+
+      τ_net += r.Cross(F);
+    }
+
     // Apply module power constraints
     auto vWrtRobot = v_k.RotateBy(-θ_k);
     for (size_t moduleIndex = 0; moduleIndex < path.drivetrain.modules.size();
@@ -228,26 +246,8 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
       double maxForce =
           path.drivetrain.wheelMaxTorque / path.drivetrain.wheelRadius;
 
-      // |F| / (1 - |V| / Vmax) < Fmax
-      problem.SubjectTo(moduleF.Norm() / (1 - vWheelWrtRobot.Norm() / maxWheelVelocity) <= maxForce);
-    }
-
-    // Solve for net force
-    auto Fx_net = std::accumulate(Fx.at(index).begin(), Fx.at(index).end(),
-                                  sleipnir::Variable{0.0});
-    auto Fy_net = std::accumulate(Fy.at(index).begin(), Fy.at(index).end(),
-                                  sleipnir::Variable{0.0});
-
-    // Solve for net torque
-    sleipnir::Variable τ_net = 0.0;
-    for (size_t moduleIndex = 0; moduleIndex < path.drivetrain.modules.size();
-         ++moduleIndex) {
-      const auto& translation = path.drivetrain.modules.at(moduleIndex);
-      auto r = translation.RotateBy(θ_k);
-      Translation2v F{Fx.at(index).at(moduleIndex),
-                      Fy.at(index).at(moduleIndex)};
-
-      τ_net += r.Cross(F);
+      // |F|₂² ≤ Fₘₐₓ²
+      problem.SubjectTo(moduleF.SquaredNorm() <= maxForce * maxForce);
     }
 
     // Apply dynamics constraints
