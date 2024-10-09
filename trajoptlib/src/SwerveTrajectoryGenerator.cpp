@@ -236,6 +236,9 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
           vWrtRobot.Y() + translation.X() * ω.at(index)};
       double maxWheelVelocity =
           path.drivetrain.wheelRadius * path.drivetrain.wheelMaxAngularVelocity;
+      Translation2v vWheelWrtRobotFromMax{
+          maxWheelVelocity - vWheelWrtRobot.X(),
+          maxWheelVelocity - vWheelWrtRobot.Y()};
 
       // |v|₂² ≤ vₘₐₓ²
       problem.SubjectTo(vWheelWrtRobot.SquaredNorm() <=
@@ -247,9 +250,7 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
           path.drivetrain.wheelMaxTorque / path.drivetrain.wheelRadius;
 
       // |F|₂² ≤ Fₘₐₓ²
-      problem.SubjectTo(moduleF.Norm() /
-                            (1 - (vWheelWrtRobot.Norm() / (maxWheelVelocity + 0.25))) <=
-                        maxForce);
+      problem.SubjectTo(moduleF.SquaredNorm() <= maxForce * vWheelWrtRobotFromMax.SquaredNorm() / (maxWheelVelocity * maxWheelVelocity));
     }
 
     // Apply dynamics constraints
