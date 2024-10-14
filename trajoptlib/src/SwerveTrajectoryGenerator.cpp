@@ -244,13 +244,14 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
       Translation2v moduleF{Fx.at(index).at(moduleIndex),
                             Fy.at(index).at(moduleIndex)};
 
-      Translation2v moduleFWrtRobot = moduleF.RotateBy(-vWheelWrtRobot.Angle());
+      Translation2v moduleFWrtRobot = moduleF.RotateBy(vWheelWrtRobot.Angle());
       double maxForce =
           path.drivetrain.wheelMaxTorque / path.drivetrain.wheelRadius;
 
       // |F|₂² ≤ Fₘₐₓ²
       // problem.SubjectTo(moduleF.SquaredNorm() <= maxForce * maxForce);
       problem.SubjectTo(moduleFWrtRobot.X() <= maxForce);
+      problem.SubjectTo(moduleFWrtRobot.X() >= -maxForce);
     }
 
     // Apply dynamics constraints
