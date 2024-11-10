@@ -249,9 +249,7 @@ SwerveTrajectoryGenerator::SwerveTrajectoryGenerator(
           path.drivetrain.wheelMaxTorque / path.drivetrain.wheelRadius;
 
       // |F|₂² ≤ Fₘₐₓ²
-      // problem.SubjectTo(moduleF.SquaredNorm() <= maxForce * maxForce);
-      problem.SubjectTo(moduleFWrtRobot.X() <= maxForce);
-      problem.SubjectTo(moduleFWrtRobot.X() >= -maxForce);
+      problem.SubjectTo(moduleF.SquaredNorm() <= maxForce * maxForce);
     }
 
     // Apply dynamics constraints

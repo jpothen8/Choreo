@@ -4,8 +4,8 @@ type Props = object;
 
 type State = object;
 
-export const WIDTH_M = 8.21055;
-export const LENGTH_M = 16.54175;
+export const WIDTH_M = 8.2296;
+export const LENGTH_M = 16.4592;
 
 export default class FieldImage2024 extends Component<Props, State> {
   static WIDTH_M = WIDTH_M;
